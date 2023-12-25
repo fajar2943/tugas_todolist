@@ -14,6 +14,7 @@ class DatabaseHelper {
 
   Future<Database?> get db async {
     if (_db != null) return _db;
+    _db = await initDb();
     return _db;
   }
 
@@ -41,6 +42,13 @@ class DatabaseHelper {
   Future<List<Todo>> getAllTodos() async {
     var dbClient = await db;
     var todos = await dbClient!.query('todos');
+    return todos.map((todo) => Todo.fromMap(todo)).toList();
+  }
+
+  Future<List<Todo>> searchTodo(String keyword) async {
+    var dbClient = await db;
+    var todos = await dbClient!
+        .query('todos', where: 'nama like ?', whereArgs: ['%$keyword']);
     return todos.map((todo) => Todo.fromMap(todo)).toList();
   }
 

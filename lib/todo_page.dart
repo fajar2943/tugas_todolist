@@ -27,6 +27,7 @@ class TodoList extends StatefulWidget {
 class _TodoList extends State<TodoList> {
   TextEditingController _nameCtrl = TextEditingController();
   TextEditingController _deskripsiCtrl = TextEditingController();
+  TextEditingController _searchCtrl = TextEditingController();
   List<Todo> todoList = Todo.dummyData;
 
   final dbHelper = DatabaseHelper();
@@ -62,6 +63,20 @@ class _TodoList extends State<TodoList> {
     // todoList.removeAt(index);
     await dbHelper.deleteTodo(id);
     refreshList();
+  }
+
+  void cariTodo() async {
+    String teks = _searchCtrl.text.trim();
+    List<Todo> todos = [];
+    if (teks.isEmpty) {
+      todos = await dbHelper.getAllTodos();
+    } else {
+      todos = await dbHelper.searchTodo(teks);
+    }
+
+    setState(() {
+      todoList = todos;
+    });
   }
 
   void tampilForm() {
@@ -118,6 +133,19 @@ class _TodoList extends State<TodoList> {
       ),
       body: Column(
         children: [
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: (_) {
+                cariTodo();
+              },
+              decoration: InputDecoration(
+                  hintText: 'cari apa',
+                  prefixIcon: Icon(Icons.search),
+                  border: OutlineInputBorder()),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               itemCount: todoList.length,

@@ -23,10 +23,10 @@ class Todo {
 
   factory Todo.fromMap(Map<String, dynamic> map) {
     return Todo(
-      id: map['id'],
       map['nama'] as String,
       map['deskripsi'] as String,
       done: map['done'] == 0 ? false : true,
+      id: map['id'],
     );
   }
 }
