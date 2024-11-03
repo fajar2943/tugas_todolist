@@ -68,4 +68,9 @@ class DatabaseHelper {
     var dbClient = await db;
     return await dbClient!.delete('todos', where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<int> deleteAllTodo() async {
+    var dbClient = await db;
+    return await dbClient!.delete('todos', where: 'done = 1');
+  }
 }

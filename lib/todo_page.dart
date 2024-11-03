@@ -27,6 +27,8 @@ class TodoList extends StatefulWidget {
 class _TodoList extends State<TodoList> {
   TextEditingController _nameCtrl = TextEditingController();
   TextEditingController _deskripsiCtrl = TextEditingController();
+  TextEditingController _nameEditCtrl = TextEditingController();
+  TextEditingController _deskripsiEditCtrl = TextEditingController();
   TextEditingController _searchCtrl = TextEditingController();
   List<Todo> todoList = Todo.dummyData;
 
@@ -59,9 +61,21 @@ class _TodoList extends State<TodoList> {
     refreshList();
   }
 
+  void updateData(int index) async {
+    todoList[index].nama = _nameEditCtrl.text;
+    todoList[index].deskripsi = _deskripsiEditCtrl.text;
+    await dbHelper.updateTodo(todoList[index]);
+    refreshList();
+  }
+
   void deleteItem(int id) async {
     // todoList.removeAt(index);
     await dbHelper.deleteTodo(id);
+    refreshList();
+  }
+
+  void deleteAll() async {
+    await dbHelper.deleteAllTodo();
     refreshList();
   }
 
@@ -118,6 +132,74 @@ class _TodoList extends State<TodoList> {
             ));
   }
 
+  void editForm(int index) {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              insetPadding: EdgeInsets.all(20),
+              title: Text("Edit Todo"),
+              content: Container(
+                height: 200,
+                width: MediaQuery.of(context).size.width,
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _nameEditCtrl,
+                      decoration: InputDecoration(hintText: "Nama todo"),
+                    ),
+                    TextField(
+                      controller: _deskripsiEditCtrl,
+                      decoration:
+                          InputDecoration(hintText: "Deskripsi pekerjaan"),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("Tutup")),
+                ElevatedButton(
+                    onPressed: () {
+                      updateData(index);
+                      Navigator.pop(context);
+                    },
+                    child: Text("Update")),
+              ],
+            ));
+  }
+
+  void deleteAllForm() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              insetPadding: EdgeInsets.all(20),
+              title: Text("Hapus semua todo selesai."),
+              content: Container(
+                  height: 50,
+                  width: MediaQuery.of(context).size.width,
+                  child: Center(
+                    child: Text(
+                        "Apakah anda yakin untuk menghapus semua todo yang selesai?"),
+                  )),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("Tutup")),
+                ElevatedButton(
+                    onPressed: () {
+                      deleteAll();
+                      Navigator.pop(context);
+                    },
+                    child: Text("Hapus")),
+              ],
+            ));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,7 +223,7 @@ class _TodoList extends State<TodoList> {
                 cariTodo();
               },
               decoration: InputDecoration(
-                  hintText: 'cari apa',
+                  hintText: 'Cari',
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder()),
             ),
@@ -166,11 +248,24 @@ class _TodoList extends State<TodoList> {
                         ),
                   title: Text(todoList[index].nama),
                   subtitle: Text(todoList[index].deskripsi),
-                  trailing: IconButton(
-                    icon: Icon(Icons.delete),
-                    onPressed: () {
-                      deleteItem(todoList[index].id ?? 0);
-                    },
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: () {
+                          _nameEditCtrl.text = todoList[index].nama;
+                          _deskripsiEditCtrl.text = todoList[index].deskripsi;
+                          editForm(index);
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          deleteItem(todoList[index].id ?? 0);
+                        },
+                      ),
+                    ],
                   ),
                 );
               },
@@ -178,6 +273,15 @@ class _TodoList extends State<TodoList> {
           ),
         ],
       ),
+      bottomNavigationBar: SizedBox(
+          height: 110,
+          child: Center(
+            child: ElevatedButton(
+                onPressed: () {
+                  deleteAllForm();
+                },
+                child: Text("Hapus yang selesai")),
+          )),
     );
   }
 }
